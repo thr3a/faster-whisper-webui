@@ -1,30 +1,33 @@
-# docker build -t whisper-webui --build-arg WHISPER_IMPLEMENTATION=whisper .
+# FROM nvcr.io/nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+FROM nvcr.io/nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
-FROM huggingface/transformers-pytorch-gpu
-EXPOSE 7860
+ARG PYTHON_VERSION=3.11
+ARG PACKAGES="git curl ca-certificates ffmpeg"
 
-ARG WHISPER_IMPLEMENTATION=whisper
-ENV WHISPER_IMPLEMENTATION=${WHISPER_IMPLEMENTATION}
-
-ADD . /opt/whisper-webui/
-
-# Latest version of transformers-pytorch-gpu seems to lack tk. 
-# Further, pip install fails, so we must upgrade pip first.
-RUN apt-get -y install python3-tk
-RUN  python3 -m pip install --upgrade pip
-
-RUN if [ "${WHISPER_IMPLEMENTATION}" = "whisper" ]; then \
-    python3 -m pip install -r /opt/whisper-webui/requirements-whisper.txt; \
-  else \
-    python3 -m pip install -r /opt/whisper-webui/requirements-fasterWhisper.txt; \
-  fi
-
-# Note: Models will be downloaded on demand to the directory /root/.cache/whisper.
-# You can also bind this directory in the container to somewhere on the host.
-
-# To be able to see logs in real time
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Tokyo
 ENV PYTHONUNBUFFERED=1
+ENV WHISPER_IMPLEMENTATION=faster-whisper
+ENV PIP_NO_CACHE_DIR=on
 
-WORKDIR /opt/whisper-webui/
-ENTRYPOINT ["python3"]
-CMD ["app.py", "--input_audio_max_duration", "-1", "--server_name", "0.0.0.0", "--auto_parallel", "True"]
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv f23c5a6cf475977595c89f51ba6932366a755776 \
+ && echo "deb http://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu jammy main" > /etc/apt/sources.list.d/python.list \
+ && echo "deb-src http://ppa.launchpad.net/deadsnakes/ppa/ubuntu jammy main" >> /etc/apt/sources.list.d/python.list
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ${PACKAGES} python${PYTHON_VERSION} python${PYTHON_VERSION}-dev \
+ && ln -nfs /usr/bin/python${PYTHON_VERSION} /usr/bin/python \
+ && ln -nfs /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY . ./
+
+RUN curl -sSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py \
+  && python /tmp/get-pip.py \
+  && pip install torch==2.1.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121 \
+  && pip install -r requirements-fasterWhisper.txt
+RUN python -c "from huggingface_hub import snapshot_download; snapshot_download('guillaumekln/faster-whisper-large-v2')"
+# ENV HF_HUB_OFFLINE=1
+
+CMD ["python", "app.py", "--input_audio_max_duration", "-1", "--server_name", "0.0.0.0", "--auto_parallel", "True", "--default_model_name", "large-v2"]
