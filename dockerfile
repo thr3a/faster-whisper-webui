@@ -15,7 +15,7 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv f23c5a6cf475977595c89f51
  && echo "deb-src http://ppa.launchpad.net/deadsnakes/ppa/ubuntu jammy main" >> /etc/apt/sources.list.d/python.list
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ${PACKAGES} python${PYTHON_VERSION} python${PYTHON_VERSION}-dev \
+ && apt-get install -y --no-install-recommends ${PACKAGES} python${PYTHON_VERSION} \
  && ln -nfs /usr/bin/python${PYTHON_VERSION} /usr/bin/python \
  && ln -nfs /usr/bin/python${PYTHON_VERSION} /usr/bin/python3 \
  && rm -rf /var/lib/apt/lists/*
@@ -26,7 +26,7 @@ COPY . ./
 RUN curl -sSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py \
   && python /tmp/get-pip.py \
   && pip install torch==2.1.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121 \
-  && pip install -r requirements-fasterWhisper.txt
+  && pip install -r requirements.txt
 RUN python -c "from huggingface_hub import snapshot_download; snapshot_download('guillaumekln/faster-whisper-large-v2')"
 # ENV HF_HUB_OFFLINE=1
 
