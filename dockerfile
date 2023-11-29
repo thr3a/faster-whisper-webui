@@ -27,9 +27,9 @@ RUN curl -sSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py \
   && python /tmp/get-pip.py \
   && pip install torch==2.1.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121 \
   && pip install -r requirements.txt
-RUN python -c "from huggingface_hub import snapshot_download; snapshot_download('guillaumekln/faster-whisper-large-v2')"
+RUN python -c "from huggingface_hub import snapshot_download; snapshot_download('Systran/faster-whisper-large-v3')"
 # ENV HF_HUB_OFFLINE=1
 
 COPY . ./
 
-CMD ["python", "app.py", "--input_audio_max_duration", "-1", "--server_name", "0.0.0.0", "--auto_parallel", "True", "--default_model_name", "large-v2"]
+CMD ["python", "app.py", "--input_audio_max_duration", "-1", "--server_name", "0.0.0.0", "--auto_parallel", "True", "--default_model_name", "large-v3"]
