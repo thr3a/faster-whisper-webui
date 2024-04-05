@@ -738,7 +738,7 @@ if __name__ == '__main__':
                         help="The port to bind to.") # 7860
     parser.add_argument("--queue_concurrency_count", type=int, default=default_app_config.queue_concurrency_count, \
                         help="The number of concurrent requests to process.") # 1
-    parser.add_argument("--default_model_name", type=str, choices=whisper_models, default=default_app_config.default_model_name, \
+    parser.add_argument("--default_model_name", "--model", type=str, choices=whisper_models, default=default_app_config.default_model_name, \
                         help="The default model name.") # medium
     parser.add_argument("--default_vad", type=str, default=default_app_config.default_vad, \
                         help="The default VAD.") # silero-vad
@@ -760,7 +760,9 @@ if __name__ == '__main__':
                         help="the compute type to use for inference")
     parser.add_argument("--threads", type=optional_int, default=0, 
                         help="number of threads used by torch for CPU inference; supercedes MKL_NUM_THREADS/OMP_NUM_THREADS")
-    
+    parser.add_argument("--language", type=str, default=default_app_config.language, choices=sorted(get_language_names()), \
+                        help="language spoken in the audio, specify None to perform language detection")
+
     parser.add_argument('--auth_token', type=str, default=default_app_config.auth_token, help='HuggingFace API Token (optional)')
     parser.add_argument("--diarization", type=str2bool, default=default_app_config.diarization, \
                         help="whether to perform speaker diarization")
