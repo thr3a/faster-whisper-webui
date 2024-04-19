@@ -3,7 +3,7 @@ FROM --platform=linux/x86_64 thr3a/cuda12.1-torch:latest
 ENV WHISPER_IMPLEMENTATION=faster-whisper
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ffmpeg \
+ && apt-get install -y --no-install-recommends ffmpeg libcublas11 \
  && rm -rf /var/lib/apt/lists/*
 
 COPY ./requirements.txt ./
