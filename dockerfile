@@ -13,4 +13,4 @@ RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(
 
 COPY . ./
 
-CMD ["python", "app.py", "--input_audio_max_duration", "-1", "--server_name", "0.0.0.0", "--auto_parallel", "True", "--default_model_name", "large-v3", "--language", "ja"]
+CMD ["python", "app.py", "--input_audio_max_duration", "-1", "--server_name", "0.0.0.0", "--auto_parallel", "True", "--default_model_name", "large-v3", "--language", "Japanese"]
