@@ -501,16 +501,20 @@ class WhisperTranscriber:
         language = result["language"] if "language" in result else None
         languageMaxLineWidth = self.__get_max_line_width(language)
 
+        # We always create the JSON file for debugging purposes
+        json_result = json.dumps(result, indent=4, ensure_ascii=False)
+        json_file = self.__create_file(json_result, output_dir, source_name + "-result.json")
+        print("Created JSON file " + json_file)
+
         print("Max line width " + str(languageMaxLineWidth))
         vtt = self.__get_subs(result["segments"], "vtt", languageMaxLineWidth, highlight_words=highlight_words)
         srt = self.__get_subs(result["segments"], "srt", languageMaxLineWidth, highlight_words=highlight_words)
-        json_result = json.dumps(result, indent=4, ensure_ascii=False)
 
         output_files = []
         output_files.append(self.__create_file(srt, output_dir, source_name + "-subs.srt"));
         output_files.append(self.__create_file(vtt, output_dir, source_name + "-subs.vtt"));
         output_files.append(self.__create_file(text, output_dir, source_name + "-transcript.txt"));
-        output_files.append(self.__create_file(json_result, output_dir, source_name + "-result.json"));
+        output_files.append(json_file)
 
         return output_files, text, vtt
 
@@ -734,7 +738,7 @@ if __name__ == '__main__':
                         help="The port to bind to.") # 7860
     parser.add_argument("--queue_concurrency_count", type=int, default=default_app_config.queue_concurrency_count, \
                         help="The number of concurrent requests to process.") # 1
-    parser.add_argument("--default_model_name", type=str, choices=whisper_models, default=default_app_config.default_model_name, \
+    parser.add_argument("--default_model_name", "--model", type=str, choices=whisper_models, default=default_app_config.default_model_name, \
                         help="The default model name.") # medium
     parser.add_argument("--default_vad", type=str, default=default_app_config.default_vad, \
                         help="The default VAD.") # silero-vad
@@ -758,6 +762,7 @@ if __name__ == '__main__':
                         help="number of threads used by torch for CPU inference; supercedes MKL_NUM_THREADS/OMP_NUM_THREADS")
     parser.add_argument("--language", type=str, default=default_app_config.language, choices=sorted(get_language_names()), \
                         help="language spoken in the audio, specify None to perform language detection")
+
     parser.add_argument('--auth_token', type=str, default=default_app_config.auth_token, help='HuggingFace API Token (optional)')
     parser.add_argument("--diarization", type=str2bool, default=default_app_config.diarization, \
                         help="whether to perform speaker diarization")
